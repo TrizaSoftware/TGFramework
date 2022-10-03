@@ -1,0 +1,12 @@
+{
+  "name": "tEngine",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "t:Engine": {
+        "$path": "src"
+      }
+    }
+  }
+}
