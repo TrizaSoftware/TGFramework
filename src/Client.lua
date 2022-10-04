@@ -59,7 +59,6 @@ function tEngineClient:Start()
         end)
     end
     self.OnStart:Fire()
-
     resolve(true)
 end)
 end

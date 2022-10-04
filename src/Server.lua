@@ -72,12 +72,6 @@ function tEngineServer:Start()
             end)
         end
         self.OnStart:Fire()
-        self.MainSignal:Connect(function(plr, req, ...)
-            local Data = {...}
-            if req == "getService" then
-                return 
-            end
-        end)
         resolve(true)
     end)
 end
