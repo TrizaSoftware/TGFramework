@@ -10,10 +10,18 @@ local ClientServices = {}
 local tEngineClient = {}
 
 local function formatService(service)
-  
+  local serviceFolder = ServiceEventsFolder:FindFirstChild(service)
+  local formattedService = {}
+  for _, item in serviceFolder.RemoteFunctions:GetChildren() do
+    formattedService[item.Name] = function(...)
+      return item:InvokeServer(...)
+    end
+  end
 end
 
 function tEngineClient:GetService(service)
+  assert(ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
+  return formatService(service)
 end
 
 function tEngineClient:GetClientService(service)
