@@ -1,5 +1,5 @@
 {
-  "name": "tEngine",
+  "name": "t:Engine",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
