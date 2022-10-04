@@ -1,6 +1,8 @@
 local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
+local ServiceEventsFolder = Instance.new("Folder", script.Parent)
+ServiceEventsFolder.Name = "ServiceEvents"
 local _warn = warn
 local function warn(...)
     _warn("[t:Engine Server]:",...)
@@ -8,6 +10,7 @@ end
 local Services = {}
 local tEngineServer = {}
 
+--[[
 local function formatService(service)
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     local newService = {}
@@ -20,7 +23,7 @@ local function formatService(service)
         end
     end
 end
-
+]]
 function tEngineServer:GetService(service:string)
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[Services]
@@ -54,7 +57,16 @@ function tEngineServer:Start()
                     Service:Initialize()
                 end
                 for property, value in Service do
-                    if typeof(property) == "function" then
+                    local ServiceFolder = Instance.new("Folder", ServiceEventsFolder)
+                    ServiceFolder.Name = Service.Name
+                    local RemoteFunctions = Instance.new("Folder", ServiceFolder)
+                    RemoteFunctions.Name = "RemoteFunctions"
+                    if typeof(value) == "function" then
+                        local RemoteFunction = Instance.new("RemoteFunction", RemoteFunctions)
+                        RemoteFunction.Name = property
+                        RemoteFunction.OnServerInvoke = function(...)
+                            return value(...)
+                        end
                     end
                 end
             end)
@@ -71,9 +83,6 @@ function tEngineServer:Start()
 end
 
 tEngineServer.OnStart = Signal.new()
-tEngineServer.MainSignal = Signal.new("RemoteFunction")
-tEngineServer.MainSignal.Event.Parent = script.Parent
-tEngineServer.MainSignal.Event.Name = "tEngineGateway"
 tEngineServer.Dependencies = Dependencies
 
 return tEngineServer

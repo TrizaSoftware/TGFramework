@@ -1,6 +1,7 @@
 local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
+local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEventsFolder")
 local _warn = warn
 local function warn(...)
     _warn("[t:Engine Client]:",...)
@@ -8,8 +9,11 @@ end
 local ClientServices = {}
 local tEngineClient = {}
 
+local function formatService(service)
+  
+end
+
 function tEngineClient:GetService(service)
- return self.MainSignal:InvokeServer("getService", service)
 end
 
 function tEngineClient:GetClientService(service)
@@ -47,14 +51,11 @@ function tEngineClient:Start()
         end)
     end
     self.OnStart:Fire()
-    self.MainSignal:Connect(function(plr, req)
 
-    end)
     resolve(true)
 end)
 end
 
-tEngineClient.MainSignal = Signal:createNewFromExisting(script.Parent:WaitForChild("tEngineGateway"))
 tEngineClient.OnStart = Signal.new()
 tEngineClient.Dependencies = Dependencies
 
