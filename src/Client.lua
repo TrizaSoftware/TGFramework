@@ -1,7 +1,8 @@
 local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
-local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEventsFolder")
+local Networking = require(Dependencies.Networking)
+local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
 local _warn = warn
 local function warn(...)
     _warn("[t:Engine Client]:",...)
@@ -17,6 +18,10 @@ local function formatService(service)
       return item:InvokeServer(...)
     end
   end
+  for _, item in serviceFolder.RemoteEvents:GetChildren() do
+    formattedService[item.Name] = Networking:HandleEvent(item)
+  end
+  return formattedService
 end
 
 function tEngineClient:GetService(service)

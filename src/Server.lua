@@ -1,6 +1,7 @@
 local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
+local Networking = require(Dependencies.Networking)
 local ServiceEventsFolder = Instance.new("Folder", script.Parent)
 ServiceEventsFolder.Name = "ServiceEvents"
 local _warn = warn
@@ -32,9 +33,9 @@ end
 function tEngineServer:CreateService(config)
     assert(config.Name, "A service must have a name.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
-    local service = config
-    Services[service] = config
-    return service
+    local Service = config
+    Services[Service.Name] = config
+    return Service
 end
 
 function tEngineServer:AddServices(directory:Folder)
@@ -53,22 +54,30 @@ function tEngineServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
             task.spawn(function()
-                if Service["Initialize"] then
-                    Service:Initialize()
-                end
-                for property, value in Service do
-                    local ServiceFolder = Instance.new("Folder", ServiceEventsFolder)
-                    ServiceFolder.Name = Service.Name
-                    local RemoteFunctions = Instance.new("Folder", ServiceFolder)
-                    RemoteFunctions.Name = "RemoteFunctions"
+                local ServiceFolder = Instance.new("Folder", ServiceEventsFolder)
+                ServiceFolder.Name = Service.Name
+                local RemoteFunctions = Instance.new("Folder", ServiceFolder)
+                RemoteFunctions.Name = "RemoteFunctions"
+                local RemoteEvents = Instance.new("Folder", ServiceFolder)
+                RemoteEvents.Name = "RemoteEvents"
+                for property, value in Service.Client do
                     if typeof(value) == "function" then
                         local RemoteFunction = Instance.new("RemoteFunction", RemoteFunctions)
                         RemoteFunction.Name = property
-                        RemoteFunction.OnServerInvoke = function(...)
-                            return value(...)
-                        end
+                        Networking:HandleEvent(RemoteFunction):Connect(
+                            function(...)
+                                return value(...)
+                            end
+                        )
+                    elseif typeof(value) == "string" and property == "Signal" then
+                        local RemoteEvent = Instance.new("RemoteEvent", RemoteEvents)
+						RemoteEvent.Name = property
+                        Services[Service.Name].Client[property] = Networking:HandleEvent(RemoteEvent)
                     end
-                end
+				end
+				if Service["Initialize"] then
+					Service:Initialize()
+				end
             end)
         end
         self.OnStart:Fire()
