@@ -2,7 +2,8 @@ local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
 local Networking = require(Dependencies.Networking)
-local ServiceEventsFolder = Instance.new("Folder", script.Parent)
+local ServiceEventsFolder = Instance.new("Folder")
+ServiceEventsFolder.Parent = script.Parent
 ServiceEventsFolder.Name = "ServiceEvents"
 local _warn = warn
 local function warn(...)
@@ -54,15 +55,19 @@ function tEngineServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
             task.spawn(function()
-                local ServiceFolder = Instance.new("Folder", ServiceEventsFolder)
+                local ServiceFolder = Instance.new("Folder")
+                ServiceFolder.Parent = ServiceEventsFolder
                 ServiceFolder.Name = Service.Name
-                local RemoteFunctions = Instance.new("Folder", ServiceFolder)
+                local RemoteFunctions = Instance.new("Folder")
+                RemoteFunctions.Parent = ServiceFolder
                 RemoteFunctions.Name = "RemoteFunctions"
-                local RemoteEvents = Instance.new("Folder", ServiceFolder)
+                local RemoteEvents = Instance.new("Folder")
+                RemoteEvents.Parent = ServiceFolder
                 RemoteEvents.Name = "RemoteEvents"
                 for property, value in Service.Client do
                     if typeof(value) == "function" then
-                        local RemoteFunction = Instance.new("RemoteFunction", RemoteFunctions)
+                        local RemoteFunction = Instance.new("RemoteFunction")
+                        RemoteFunction.Parent = RemoteFunctions
                         RemoteFunction.Name = property
                         Networking:HandleEvent(RemoteFunction):Connect(
                             function(...)
@@ -70,7 +75,8 @@ function tEngineServer:Start()
                             end
                         )
                     elseif typeof(value) == "string" and property == "Signal" then
-                        local RemoteEvent = Instance.new("RemoteEvent", RemoteEvents)
+                        local RemoteEvent = Instance.new("RemoteEvent")
+                        RemoteEvent.Parent = RemoteEvents
 						RemoteEvent.Name = property
                         Services[Service.Name].Client[property] = Networking:HandleEvent(RemoteEvent)
                     end
