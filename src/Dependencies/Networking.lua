@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local Networking = {}
@@ -24,6 +25,13 @@ function Networking:HandleEvent(event)
       end
     end
   elseif event:IsA("RemoteFunction") then
+    function self:Fire(...)
+      if RunService:IsServer() then
+        return event:InvokeClient(...)
+      else
+        return event:InvokeServer(...)
+      end
+    end
     function self:Connect(...)
       if RunService:IsServer() then
         event.OnServerInvoke = ...
