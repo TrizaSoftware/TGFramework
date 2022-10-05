@@ -1,4 +1,3 @@
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local Networking = {}
@@ -6,9 +5,15 @@ local Networking = {}
 function Networking:HandleEvent(event)
   local self = {}
   if event:IsA("RemoteEvent") then
-    function self:FireAllClients(plr, ...)
+    function self:FireAllClients(...)
       assert(RunService:IsServer(), "This method can only be called on the server.")
       event:FireAllClients(...)
+    end
+    function self:FireToGroup(group, ...)
+      assert(RunService:IsServer(), "This method can only be called on the server.")
+      for _, player in group do
+        self:Fire(player, ...)
+      end
     end
     function self:Fire(...)
       if RunService:IsServer() then
