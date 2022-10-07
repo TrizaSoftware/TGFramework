@@ -61,9 +61,9 @@ function tEngineServer:Start()
                 local RemoteFunctions = Instance.new("Folder")
                 RemoteFunctions.Parent = ServiceFolder
                 RemoteFunctions.Name = "RemoteFunctions"
-                local RemoteEvents = Instance.new("Folder")
-                RemoteEvents.Parent = ServiceFolder
-                RemoteEvents.Name = "RemoteEvents"
+                local ClientSignalEvents = Instance.new("Folder")
+                ClientSignalEvents.Parent = ServiceFolder
+                ClientSignalEvents.Name = "ClientSignalEvents"
                 for property, value in Service.Client do
                     if typeof(value) == "function" then
                         local RemoteFunction = Instance.new("RemoteFunction")
@@ -74,11 +74,17 @@ function tEngineServer:Start()
                                 return value(...)
                             end
                         )
-                    elseif typeof(value) == "string" and property == "Signal" then
-                        local RemoteEvent = Instance.new("RemoteEvent")
-                        RemoteEvent.Parent = RemoteEvents
-						RemoteEvent.Name = property
-                        Services[Service.Name].Client[property] = Networking:HandleEvent(RemoteEvent)
+                    elseif typeof(value) == "string" and value:find("Signal") then
+                        local SignalType = value:split(":")[2]
+                        local Remote = nil
+                        if SignalType == "Event" then
+                            Remote = Instance.new("RemoteEvent")
+                        else
+                            Remote = Instance.new("RemoteFunction")
+                        end
+                        Remote.Parent = ClientSignalEvents
+						Remote.Name = property
+                        Services[Service.Name].Client[property] = Networking:HandleEvent(Remote)
                     end
 				end
 				if Service["Initialize"] then
@@ -93,5 +99,6 @@ end
 
 tEngineServer.OnStart = Signal.new()
 tEngineServer.Dependencies = Dependencies
+tEngineServer.Networking = Networking
 
 return tEngineServer

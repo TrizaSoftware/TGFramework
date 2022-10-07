@@ -18,7 +18,7 @@ local function formatService(service)
       return item:InvokeServer(...)
     end
   end
-  for _, item in serviceFolder.RemoteEvents:GetChildren() do
+  for _, item in serviceFolder.ClientSignalEvents:GetChildren() do
     formattedService[item.Name] = Networking:HandleEvent(item)
   end
   return formattedService

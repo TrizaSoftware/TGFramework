@@ -2,6 +2,11 @@ local RunService = game:GetService("RunService")
 
 local Networking = {}
 
+function Networking:CreateSignal(type)
+  assert(type == "Event" or type == "Function", "Invalid type for signal.")
+  return string.format("Signal:%s", type)
+end
+
 function Networking:HandleEvent(event)
   local self = {}
   if event:IsA("RemoteEvent") then
