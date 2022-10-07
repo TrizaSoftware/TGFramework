@@ -38,7 +38,7 @@ function tEngineClient:CreateClientService(config)
   assert(config.Name, "A name must be specified for a ClientService.")
   assert(not ClientServices[config.Name], string.format("A ClientService with the name of %s already exists.", config.Name))
   local service = config
-  ClientServices[service] = config
+  ClientServices[config.Name] = config
   return service
 end
 
