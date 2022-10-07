@@ -55,38 +55,40 @@ function tEngineServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
             task.spawn(function()
-                local ServiceFolder = Instance.new("Folder")
-                ServiceFolder.Parent = ServiceEventsFolder
-                ServiceFolder.Name = Service.Name
-                local RemoteFunctions = Instance.new("Folder")
-                RemoteFunctions.Parent = ServiceFolder
-                RemoteFunctions.Name = "RemoteFunctions"
-                local ClientSignalEvents = Instance.new("Folder")
-                ClientSignalEvents.Parent = ServiceFolder
-                ClientSignalEvents.Name = "ClientSignalEvents"
-                for property, value in Service.Client do
-                    if typeof(value) == "function" then
-                        local RemoteFunction = Instance.new("RemoteFunction")
-                        RemoteFunction.Parent = RemoteFunctions
-                        RemoteFunction.Name = property
-                        Networking:HandleEvent(RemoteFunction):Connect(
-                            function(...)
-                                return value(...)
+                if Service.Client then
+                    local ServiceFolder = Instance.new("Folder")
+                    ServiceFolder.Parent = ServiceEventsFolder
+                    ServiceFolder.Name = Service.Name
+                    local RemoteFunctions = Instance.new("Folder")
+                    RemoteFunctions.Parent = ServiceFolder
+                    RemoteFunctions.Name = "RemoteFunctions"
+                    local ClientSignalEvents = Instance.new("Folder")
+                    ClientSignalEvents.Parent = ServiceFolder
+                    ClientSignalEvents.Name = "ClientSignalEvents"
+                    for property, value in Service.Client do
+                        if typeof(value) == "function" then
+                            local RemoteFunction = Instance.new("RemoteFunction")
+                            RemoteFunction.Parent = RemoteFunctions
+                            RemoteFunction.Name = property
+                            Networking:HandleEvent(RemoteFunction):Connect(
+                                function(...)
+                                    return value(...)
+                                end
+                            )
+                        elseif typeof(value) == "string" and value:find("Signal") then
+                            local SignalType = value:split(":")[2]
+                            local Remote = nil
+                            if SignalType == "Event" then
+                                Remote = Instance.new("RemoteEvent")
+                            else
+                                Remote = Instance.new("RemoteFunction")
                             end
-                        )
-                    elseif typeof(value) == "string" and value:find("Signal") then
-                        local SignalType = value:split(":")[2]
-                        local Remote = nil
-                        if SignalType == "Event" then
-                            Remote = Instance.new("RemoteEvent")
-                        else
-                            Remote = Instance.new("RemoteFunction")
+                            Remote.Parent = ClientSignalEvents
+                            Remote.Name = property
+                            Services[Service.Name].Client[property] = Networking:HandleEvent(Remote)
                         end
-                        Remote.Parent = ClientSignalEvents
-						Remote.Name = property
-                        Services[Service.Name].Client[property] = Networking:HandleEvent(Remote)
                     end
-				end
+                end
 				if Service["Initialize"] then
 					Service:Initialize()
 				end
