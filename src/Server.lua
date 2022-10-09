@@ -70,7 +70,7 @@ function tEngineServer:Start()
                             local RemoteFunction = Instance.new("RemoteFunction")
                             RemoteFunction.Parent = RemoteFunctions
                             RemoteFunction.Name = property
-                            Networking:HandleEvent(RemoteFunction):Connect(
+                            Networking:HandleRemoteFunction(RemoteFunction):Connect(
                                 function(...)
                                     return value(...)
                                 end
@@ -83,9 +83,9 @@ function tEngineServer:Start()
                             else
                                 Remote = Instance.new("RemoteFunction")
                             end
-                            Remote.Parent = ClientSignalEvents
+                            Services[Service.Name].Client[property] = if Remote:IsA("RemoteFunction") then Networking:HandleRemoteFunction(Remote) else Networking:HandleRemoteEvent(Remote)
                             Remote.Name = property
-                            Services[Service.Name].Client[property] = Networking:HandleEvent(Remote)
+                            Remote.Parent = ClientSignalEvents
                         end
                     end
                 end
