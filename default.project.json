@@ -1,10 +1,10 @@
 {
-  "name": "t:Engine",
+  "name": "TGFramework",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "t:Engine": {
+      "TGFramework": {
         "$path": "src"
       }
     }
