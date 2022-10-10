@@ -8,7 +8,7 @@ local function warn(...)
     _warn("[t:Engine Client]:",...)
 end
 local Controllers = {}
-local tEngineClient = {}
+local TGFrameworkClient = {}
 
 local function formatService(service)
   local serviceFolder = ServiceEventsFolder:FindFirstChild(service)
@@ -24,18 +24,18 @@ local function formatService(service)
   return formattedService
 end
 
-function tEngineClient:GetService(service)
+function TGFrameworkClient:GetService(service)
   assert(ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
   return formatService(service)
 end
 
-function tEngineClient:GetController(controller)
-  assert(tEngineClient.Started, "You can't get a Controller when t:Engine hasn't started.")
+function TGFrameworkClient:GetController(controller)
+  assert(TGFrameworkClient.Started, "You can't get a Controller when t:Engine hasn't started.")
   assert(Controllers[controller], string.format("%s isn't a valid Controller.", controller))
   return Controllers[controller]
 end
 
-function tEngineClient:CreateController(config)
+function TGFrameworkClient:CreateController(config)
   assert(config.Name, "A name must be specified for a Controller.")
   assert(not Controllers[config.Name], string.format("A Controller with the name of %s already exists.", config.Name))
   local service = config
@@ -43,7 +43,7 @@ function tEngineClient:CreateController(config)
   return service
 end
 
-function tEngineClient:AddControllers(directory:Folder, deep:boolean)
+function TGFrameworkClient:AddControllers(directory:Folder, deep:boolean)
   for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
       if item:IsA("ModuleScript") then
           Promise.try(function()
@@ -55,7 +55,7 @@ function tEngineClient:AddControllers(directory:Folder, deep:boolean)
   end
 end
 
-function tEngineClient:Start()
+function TGFrameworkClient:Start()
   return Promise.new(function(resolve, reject, onCancel)
     for _, Controller in Controllers do
         task.spawn(function()
@@ -65,13 +65,13 @@ function tEngineClient:Start()
         end)
     end
     self.OnStart:Fire()
-    tEngineClient.Started = true
+    TGFrameworkClient.Started = true
     resolve(true)
 end)
 end
 
-tEngineClient.Started = false
-tEngineClient.OnStart = Signal.new()
-tEngineClient.Dependencies = Dependencies
+TGFrameworkClient.Started = false
+TGFrameworkClient.OnStart = Signal.new()
+TGFrameworkClient.Dependencies = Dependencies
 
-return tEngineClient
+return TGFrameworkClient

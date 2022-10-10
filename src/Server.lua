@@ -10,7 +10,7 @@ local function warn(...)
     _warn("[t:Engine Server]:",...)
 end
 local Services = {}
-local tEngineServer = {}
+local TGFrameworkServer = {}
 
 --[[
 local function formatService(service)
@@ -27,13 +27,13 @@ local function formatService(service)
 end
 ]]
 
-function tEngineServer:GetService(service:string)
-    assert(tEngineServer.Started, "You can't get a Service when t:Engine hasn't started.")
+function TGFrameworkServer:GetService(service:string)
+    assert(TGFrameworkServer.Started, "You can't get a Service when t:Engine hasn't started.")
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[Services]
 end
 
-function tEngineServer:CreateService(config)
+function TGFrameworkServer:CreateService(config)
     assert(config.Name, "A service must have a name.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
     local Service = config
@@ -41,7 +41,7 @@ function tEngineServer:CreateService(config)
     return Service
 end
 
-function tEngineServer:AddServices(directory:Folder, deep:boolean)
+function TGFrameworkServer:AddServices(directory:Folder, deep:boolean)
     for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
         if item:IsA("ModuleScript") then
             Promise.try(function()
@@ -53,7 +53,7 @@ function tEngineServer:AddServices(directory:Folder, deep:boolean)
     end
 end
 
-function tEngineServer:Start()
+function TGFrameworkServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
             task.spawn(function()
@@ -97,14 +97,14 @@ function tEngineServer:Start()
             end)
         end
         self.OnStart:Fire()
-        tEngineServer.Started = true
+        TGFrameworkServer.Started = true
         resolve(true)
     end)
 end
 
-tEngineServer.Started = false
-tEngineServer.OnStart = Signal.new()
-tEngineServer.Dependencies = Dependencies
-tEngineServer.Networking = Networking
+TGFrameworkServer.Started = false
+TGFrameworkServer.OnStart = Signal.new()
+TGFrameworkServer.Dependencies = Dependencies
+TGFrameworkServer.Networking = Networking
 
-return tEngineServer
+return TGFrameworkServer
