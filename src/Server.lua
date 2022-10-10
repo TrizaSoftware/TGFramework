@@ -26,7 +26,9 @@ local function formatService(service)
     end
 end
 ]]
+
 function tEngineServer:GetService(service:string)
+    assert(tEngineServer.Started, "You can't get a Service when t:Engine hasn't started.")
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[Services]
 end
@@ -39,8 +41,8 @@ function tEngineServer:CreateService(config)
     return Service
 end
 
-function tEngineServer:AddServices(directory:Folder)
-    for _, item in directory:GetDescendants() do
+function tEngineServer:AddServices(directory:Folder, deep:boolean)
+    for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
         if item:IsA("ModuleScript") then
             Promise.try(function()
                 require(item)
@@ -95,10 +97,12 @@ function tEngineServer:Start()
             end)
         end
         self.OnStart:Fire()
+        tEngineServer.Started = true
         resolve(true)
     end)
 end
 
+tEngineServer.Started = false
 tEngineServer.OnStart = Signal.new()
 tEngineServer.Dependencies = Dependencies
 tEngineServer.Networking = Networking
