@@ -7,7 +7,7 @@ ServiceEventsFolder.Parent = script.Parent
 ServiceEventsFolder.Name = "ServiceEvents"
 local _warn = warn
 local function warn(...)
-    _warn("[t:Engine Server]:",...)
+    _warn("[TGFramework Server]:",...)
 end
 local Services = {}
 local TGFrameworkServer = {}
