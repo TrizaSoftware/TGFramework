@@ -19,7 +19,7 @@ local function formatService(service)
     end
   end
   for _, item in serviceFolder.ClientSignalEvents:GetChildren() do
-    formattedService[item.Name] = if item:IsA("RemoteFunction") then Networking:HandleRemoteFunction(item) else Networking:HandleRemoteEvent(item)
+    formattedService[item.Name] = item:IsA("RemoteFunction") and Networking:HandleRemoteFunction(item) or Networking:HandleRemoteEvent(item)
   end
   return formattedService
 end

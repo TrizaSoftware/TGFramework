@@ -85,7 +85,7 @@ function TGFrameworkServer:Start()
                             else
                                 Remote = Instance.new("RemoteFunction")
                             end
-                            Services[Service.Name].Client[property] = if Remote:IsA("RemoteFunction") then Networking:HandleRemoteFunction(Remote) else Networking:HandleRemoteEvent(Remote)
+                            Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Networking:HandleRemoteFunction(Remote) or Networking:HandleRemoteEvent(Remote)
                             Remote.Name = property
                             Remote.Parent = ClientSignalEvents
                         end
