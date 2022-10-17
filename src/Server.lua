@@ -30,7 +30,7 @@ end
 function TGFrameworkServer:GetService(service:string)
     assert(TGFrameworkServer.Started, "You can't get a Service when t:Engine hasn't started.")
     assert(Services[service], string.format("%s isn't a valid Service.", service))
-    return Services[Services]
+    return Services[service]
 end
 
 function TGFrameworkServer:CreateService(config)
