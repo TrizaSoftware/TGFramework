@@ -58,11 +58,16 @@ end
 function TGFrameworkClient:Start()
   return Promise.new(function(resolve, reject, onCancel)
     for _, Controller in Controllers do
-        task.spawn(function()
-            if Controller["Initialize"] then
-              Controller:Initialize()
-            end
-        end)
+      if Controller.Initialize then
+        Controller:Initialize()
+      end
+    end
+    for _, Controller in Controllers do
+      task.spawn(function()
+        if Controller.Start then
+          Controller:Start()
+        end
+      end)
     end
     self.OnStart:Fire()
     TGFrameworkClient.Started = true

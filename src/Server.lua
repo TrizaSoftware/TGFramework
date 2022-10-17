@@ -56,44 +56,49 @@ end
 function TGFrameworkServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
-            task.spawn(function()
-                if Service.Client then
-                    local ServiceFolder = Instance.new("Folder")
-                    ServiceFolder.Parent = ServiceEventsFolder
-                    ServiceFolder.Name = Service.Name
-                    local RemoteFunctions = Instance.new("Folder")
-                    RemoteFunctions.Parent = ServiceFolder
-                    RemoteFunctions.Name = "RemoteFunctions"
-                    local ClientSignalEvents = Instance.new("Folder")
-                    ClientSignalEvents.Parent = ServiceFolder
-                    ClientSignalEvents.Name = "ClientSignalEvents"
-                    for property, value in Service.Client do
-                        if typeof(value) == "function" then
-                            local RemoteFunction = Instance.new("RemoteFunction")
-                            RemoteFunction.Parent = RemoteFunctions
-                            RemoteFunction.Name = property
-                            Networking:HandleRemoteFunction(RemoteFunction):Connect(
-                                function(...)
-                                    return value(...)
-                                end
-                            )
-                        elseif typeof(value) == "string" and value:find("Signal") then
-                            local SignalType = value:split(":")[2]
-                            local Remote = nil
-                            if SignalType == "Event" then
-                                Remote = Instance.new("RemoteEvent")
-                            else
-                                Remote = Instance.new("RemoteFunction")
+            if Service.Client then
+                local ServiceFolder = Instance.new("Folder")
+                ServiceFolder.Parent = ServiceEventsFolder
+                ServiceFolder.Name = Service.Name
+                local RemoteFunctions = Instance.new("Folder")
+                RemoteFunctions.Parent = ServiceFolder
+                RemoteFunctions.Name = "RemoteFunctions"
+                local ClientSignalEvents = Instance.new("Folder")
+                ClientSignalEvents.Parent = ServiceFolder
+                ClientSignalEvents.Name = "ClientSignalEvents"
+                for property, value in Service.Client do
+                    if typeof(value) == "function" then
+                        local RemoteFunction = Instance.new("RemoteFunction")
+                        RemoteFunction.Parent = RemoteFunctions
+                        RemoteFunction.Name = property
+                        Networking:HandleRemoteFunction(RemoteFunction):Connect(
+                            function(...)
+                                return value(...)
                             end
-                            Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Networking:HandleRemoteFunction(Remote) or Networking:HandleRemoteEvent(Remote)
-                            Remote.Name = property
-                            Remote.Parent = ClientSignalEvents
+                        )
+                    elseif typeof(value) == "string" and value:find("Signal") then
+                        local SignalType = value:split(":")[2]
+                        local Remote = nil
+                        if SignalType == "Event" then
+                            Remote = Instance.new("RemoteEvent")
+                        else
+                            Remote = Instance.new("RemoteFunction")
                         end
+                        Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Networking:HandleRemoteFunction(Remote) or Networking:HandleRemoteEvent(Remote)
+                        Remote.Name = property
+                        Remote.Parent = ClientSignalEvents
                     end
                 end
-				if Service["Initialize"] then
-					Service:Initialize()
-				end
+            end
+			if Service.Initialize then
+				Service:Initialize()
+			end
+        end
+        for _, Service in Services do
+            task.spawn(function()
+                if Service.Start then
+                    Service:Start()
+                end
             end)
         end
         self.OnStart:Fire()
