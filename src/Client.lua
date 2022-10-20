@@ -30,7 +30,7 @@ function TGFrameworkClient:GetService(service)
 end
 
 function TGFrameworkClient:GetController(controller)
-  assert(TGFrameworkClient.Started, "You can't get a Controller when t:Engine hasn't started.")
+  assert(TGFrameworkClient.Started, "You can't get a Controller when TGFramework hasn't started.")
   assert(Controllers[controller], string.format("%s isn't a valid Controller.", controller))
   return Controllers[controller]
 end
@@ -62,6 +62,8 @@ function TGFrameworkClient:Start()
         Controller:Initialize()
       end
     end
+    self.OnStart:Fire()
+    TGFrameworkClient.Started = true
     for _, Controller in Controllers do
       task.spawn(function()
         if Controller.Start then
@@ -69,8 +71,6 @@ function TGFrameworkClient:Start()
         end
       end)
     end
-    self.OnStart:Fire()
-    TGFrameworkClient.Started = true
     resolve(true)
 end)
 end

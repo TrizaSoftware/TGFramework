@@ -28,7 +28,7 @@ end
 ]]
 
 function TGFrameworkServer:GetService(service:string)
-    assert(TGFrameworkServer.Started, "You can't get a Service when t:Engine hasn't started.")
+    assert(TGFrameworkServer.Started, "You can't get a Service when TGFramework hasn't started.")
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[service]
 end
@@ -94,6 +94,8 @@ function TGFrameworkServer:Start()
 				Service:Initialize()
 			end
         end
+        self.OnStart:Fire()
+        TGFrameworkServer.Started = true
         for _, Service in Services do
             task.spawn(function()
                 if Service.Start then
@@ -101,8 +103,6 @@ function TGFrameworkServer:Start()
                 end
             end)
         end
-        self.OnStart:Fire()
-        TGFrameworkServer.Started = true
         resolve(true)
     end)
 end
