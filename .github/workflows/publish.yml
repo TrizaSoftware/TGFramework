@@ -18,8 +18,7 @@ jobs:
         env:
           WALLY_AUTH: ${{ secrets.WALLY_AUTH }}
         run: |
-          touch wally.toml
-          sudo mv wally.toml /src
+          sudo mv /wally.toml /src
           cd src
           mkdir ~/.wally
           printenv WALLY_AUTH > ~/.wally/auth.toml
