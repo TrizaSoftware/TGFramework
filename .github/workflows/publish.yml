@@ -21,7 +21,7 @@ jobs:
           mv ./wally.toml ./src
           cd src
           mkdir ~/.wally
-          printenv WALLY_AUTH > ~/.wally/auth.toml
+          printf "[tokens]\n\"https://api.wally.run/\" = \"%s\"" "$WALLY_TOKEN" >> ~/.wally/auth.toml
           wally publish
           cd ..
       - name: Wally Install
