@@ -18,6 +18,7 @@ jobs:
         env:
           WALLY_AUTH: ${{ secrets.WALLY_AUTH }}
         run: |
+          pwd
           sudo mv /wally.toml /src
           cd src
           mkdir ~/.wally
