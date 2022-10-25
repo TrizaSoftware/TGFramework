@@ -14,9 +14,25 @@ jobs:
       - uses: Roblox/setup-foreman@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Wally Publish
+        env:
+          WALLY_AUTH: ${{ secrets.WALLY_AUTH }}
+        run: |
+          mv wally.toml /src
+          cd src
+          mkdir ~/.wally
+          printenv WALLY_AUTH > ~/.wally/auth.toml
+          wally publish
+          cd ..
+      - name: Wally Install
+        run: |
+          cd src
+          wally install
+          cd ..
       - name: Build
         run: rojo build -o module.rbxm .github/module-deploy.project.json
-      - uses: fjogeleit/http-request-action@v1
+      - name: Publish
+        uses: fjogeleit/http-request-action@v1
         with:
           url: 'https://infra.triza.dev/api/v1/upload-model/to-group?modelId=${{secrets.MODULE_ID}}&key=${{secrets.MAIN_KEY}}'
           method: POST
