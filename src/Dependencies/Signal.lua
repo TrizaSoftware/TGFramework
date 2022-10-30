@@ -1,1 +1,1 @@
-return require(script.Parent.Parent.Packages:WaitForChild("bettersignal"))
+return require(script.Parent.Parent.Packages:FindFirstChild("bettersignal") or script.Parent.Parent:FindFirstChild("bettersignal"))
