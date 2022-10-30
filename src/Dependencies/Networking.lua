@@ -7,6 +7,7 @@ function Networking:CreateSignal(type)
   return string.format("Signal:%s", type)
 end
 
+--[[
 local RemoteFunction = {}
 RemoteFunction.__index = RemoteFunction
 
@@ -68,5 +69,6 @@ function RemoteEvent:Connect(...)
     return self.Event.OnClientEvent:Connect(...)
   end
 end
+]]
 
 return Networking

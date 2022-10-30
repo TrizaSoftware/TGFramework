@@ -1,7 +1,8 @@
 local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
-local Networking = require(Dependencies.Networking)
+local TNet = require(Dependencies.TNet)
+local TNetMain = TNet.new()
 local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
 local _warn = warn
 local function warn(...)
@@ -9,28 +10,79 @@ local function warn(...)
 end
 local Controllers = {}
 local TGFrameworkClient = {}
+local SignalEvents = {}
 
-local function formatService(service)
+local function formatService(controllerName, service)
   local serviceFolder = ServiceEventsFolder:FindFirstChild(service)
   local formattedService = {}
+  local Controller = Controllers[controllerName]
   for _, item in serviceFolder.RemoteFunctions:GetChildren() do
+    local remoteHandler = SignalEvents[item]
+    if not remoteHandler then
+      local createdRH = TNetMain:HandleRemoteFunction(item)
+      SignalEvents[item] = createdRH
+      remoteHandler = createdRH
+    end
+    if Controller.Middleware then
+      if not remoteHandler.Middleware then
+        remoteHandler.Middleware = {
+          Inbound = {},
+          Outbound = {}
+        }
+      end
+      if Controller.Middleware.Inbound then
+        for _, func in Controller.Middleware.Inbound do
+          table.insert(remoteHandler.Middleware.Inbound, func)
+        end
+      end
+      if Controller.Middleware.Outbound then
+        for _, func in Controller.Middleware.Outbound do
+          table.insert(remoteHandler.Middleware.Outbound, func)
+        end
+      end
+    end
     formattedService[item.Name] = function(...)
-      return item:InvokeServer(...)
+      return remoteHandler:Fire(...)
     end
   end
   for _, item in serviceFolder.ClientSignalEvents:GetChildren() do
-    formattedService[item.Name] = item:IsA("RemoteFunction") and Networking:HandleRemoteFunction(item) or Networking:HandleRemoteEvent(item)
+    local remoteHandler = SignalEvents[item]
+    if not remoteHandler then
+      local createdRH = item:IsA("RemoteFunction") and TNetMain:HandleRemoteFunction(item) or TNetMain:HandleRemoteEvent(item)
+      SignalEvents[item] = createdRH
+      remoteHandler = createdRH
+    end
+    if Controller.Middleware then
+      if not remoteHandler.Middleware then
+        remoteHandler.Middleware = {
+          Inbound = {},
+          Outbound = {}
+        }
+      end
+      if Controller.Middleware.Inbound then
+        for _, func in Controller.Middleware.Inbound do
+          table.insert(remoteHandler.Middleware.Inbound, func)
+        end
+      end
+      if Controller.Middleware.Outbound then
+        for _, func in Controller.Middleware.Outbound do
+          table.insert(remoteHandler.Middleware.Outbound, func)
+        end
+      end
+    end
+    formattedService[item.Name] = remoteHandler
   end
   return formattedService
 end
 
 function TGFrameworkClient:GetService(service)
   assert(ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
-  return formatService(service)
+  local items = debug.traceback():split(".")
+  local controllerName = items[#items]:split(":")[1]
+  return formatService(controllerName, service)
 end
 
 function TGFrameworkClient:GetController(controller)
-  assert(TGFrameworkClient.Started, "You can't get a Controller when TGFramework hasn't started.")
   assert(Controllers[controller], string.format("%s isn't a valid Controller.", controller))
   return Controllers[controller]
 end
@@ -38,6 +90,7 @@ end
 function TGFrameworkClient:CreateController(config)
   assert(config.Name, "A name must be specified for a Controller.")
   assert(not Controllers[config.Name], string.format("A Controller with the name of %s already exists.", config.Name))
+  assert(not TGFrameworkClient.Started, "You can't create a controller when TGFramework has already started.")
   local service = config
   Controllers[config.Name] = config
   return service

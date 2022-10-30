@@ -2,6 +2,7 @@ local Dependencies = script.Parent.Dependencies
 local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
 local Networking = require(Dependencies.Networking)
+local TNet = require(Dependencies.TNet)
 local ServiceEventsFolder = Instance.new("Folder")
 ServiceEventsFolder.Parent = script.Parent
 ServiceEventsFolder.Name = "ServiceEvents"
@@ -28,7 +29,6 @@ end
 ]]
 
 function TGFrameworkServer:GetService(service:string)
-    assert(TGFrameworkServer.Started, "You can't get a Service when TGFramework hasn't started.")
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[service]
 end
@@ -36,6 +36,7 @@ end
 function TGFrameworkServer:CreateService(config)
     assert(config.Name, "A service must have a name.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
+    assert(not TGFrameworkServer.Started, "You can't create a service when TGFramework has already started.")
     local Service = config
     Services[Service.Name] = config
     return Service
@@ -56,6 +57,10 @@ end
 function TGFrameworkServer:Start()
     return Promise.new(function(resolve, reject, onCancel)
         for _, Service in Services do
+            Service.TNet = TNet.new()
+            if Service.Middleware then
+                Service.TNet.Middleware = Service.Middleware
+            end
             if Service.Client then
                 local ServiceFolder = Instance.new("Folder")
                 ServiceFolder.Parent = ServiceEventsFolder
@@ -71,7 +76,7 @@ function TGFrameworkServer:Start()
                         local RemoteFunction = Instance.new("RemoteFunction")
                         RemoteFunction.Parent = RemoteFunctions
                         RemoteFunction.Name = property
-                        Networking:HandleRemoteFunction(RemoteFunction):Connect(
+                        Service.TNet:HandleRemoteFunction(RemoteFunction):Connect(
                             function(...)
                                 return value(...)
                             end
@@ -84,7 +89,7 @@ function TGFrameworkServer:Start()
                         else
                             Remote = Instance.new("RemoteFunction")
                         end
-                        Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Networking:HandleRemoteFunction(Remote) or Networking:HandleRemoteEvent(Remote)
+                        Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Service.TNet:HandleRemoteFunction(Remote) or Service.TNet:HandleRemoteEvent(Remote)
                         Remote.Name = property
                         Remote.Parent = ClientSignalEvents
                     end
