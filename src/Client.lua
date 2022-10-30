@@ -24,7 +24,7 @@ local function formatService(controllerName, service)
       remoteHandler = createdRH
     end
     if Controller.Middleware then
-      if not remoteHandler.Middleware then
+      if not remoteHandler.Middleware.Inbound and not remoteHandler.Middleware.Outbound then
         remoteHandler.Middleware = {
           Inbound = {},
           Outbound = {}
@@ -53,7 +53,7 @@ local function formatService(controllerName, service)
       remoteHandler = createdRH
     end
     if Controller.Middleware then
-      if not remoteHandler.Middleware then
+      if not remoteHandler.Middleware.Inbound and not remoteHandler.Middleware.Outbound then
         remoteHandler.Middleware = {
           Inbound = {},
           Outbound = {}
