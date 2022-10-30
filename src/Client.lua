@@ -77,8 +77,8 @@ end
 
 function TGFrameworkClient:GetService(service)
   assert(ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
-  local items = debug.traceback():split(".")
-  local controllerName = items[#items]:split(":")[1]
+  local items = debug.traceback():split("GetService")[2]:split(":")[1]:split(".")
+  local controllerName = items[#items]
   return formatService(controllerName, service)
 end
 
