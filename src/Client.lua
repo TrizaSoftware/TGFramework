@@ -12,6 +12,27 @@ local Controllers = {}
 local TGFrameworkClient = {}
 local SignalEvents = {}
 
+local function setupMiddleware(Controller, remoteHandler)
+  if Controller.Middleware then
+    if not remoteHandler.Middleware.Inbound and not remoteHandler.Middleware.Outbound then
+      remoteHandler.Middleware = {
+        Inbound = {},
+        Outbound = {}
+      }
+    end
+    if Controller.Middleware.Inbound then
+      for _, func in Controller.Middleware.Inbound do
+        table.insert(remoteHandler.Middleware.Inbound, func)
+      end
+    end
+    if Controller.Middleware.Outbound then
+      for _, func in Controller.Middleware.Outbound do
+        table.insert(remoteHandler.Middleware.Outbound, func)
+      end
+    end
+  end
+end
+
 local function formatService(controllerName, service)
   local serviceFolder = ServiceEventsFolder:FindFirstChild(service)
   local formattedService = {}
@@ -23,24 +44,7 @@ local function formatService(controllerName, service)
       SignalEvents[item] = createdRH
       remoteHandler = createdRH
     end
-    if Controller.Middleware then
-      if not remoteHandler.Middleware.Inbound and not remoteHandler.Middleware.Outbound then
-        remoteHandler.Middleware = {
-          Inbound = {},
-          Outbound = {}
-        }
-      end
-      if Controller.Middleware.Inbound then
-        for _, func in Controller.Middleware.Inbound do
-          table.insert(remoteHandler.Middleware.Inbound, func)
-        end
-      end
-      if Controller.Middleware.Outbound then
-        for _, func in Controller.Middleware.Outbound do
-          table.insert(remoteHandler.Middleware.Outbound, func)
-        end
-      end
-    end
+    setupMiddleware(Controller, remoteHandler)
     formattedService[item.Name] = function(...)
       return remoteHandler:Fire(...)
     end
@@ -52,24 +56,7 @@ local function formatService(controllerName, service)
       SignalEvents[item] = createdRH
       remoteHandler = createdRH
     end
-    if Controller.Middleware then
-      if not remoteHandler.Middleware.Inbound and not remoteHandler.Middleware.Outbound then
-        remoteHandler.Middleware = {
-          Inbound = {},
-          Outbound = {}
-        }
-      end
-      if Controller.Middleware.Inbound then
-        for _, func in Controller.Middleware.Inbound do
-          table.insert(remoteHandler.Middleware.Inbound, func)
-        end
-      end
-      if Controller.Middleware.Outbound then
-        for _, func in Controller.Middleware.Outbound do
-          table.insert(remoteHandler.Middleware.Outbound, func)
-        end
-      end
-    end
+    setupMiddleware(Controller, remoteHandler)
     formattedService[item.Name] = remoteHandler
   end
   return formattedService
