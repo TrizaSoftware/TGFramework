@@ -1,6 +1,6 @@
 [package]
 name = "codedjimmy/tgframework"
-version = "0.1.14"
+version = "0.1.15"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "A simple Roblox networking framework designed and managed by the T:Riza Corporation."
@@ -8,4 +8,4 @@ authors = ["Jimmy C."]
 
 [dependencies]
 bettersignal = "codedjimmy/bettersignal@0.1.1"
-tnet = "codedjimmy/tnet@0.1.4"
+tnet = "codedjimmy/tnet@0.1.6"
