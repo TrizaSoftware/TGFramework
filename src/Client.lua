@@ -63,8 +63,7 @@ local function formatService(controllerName, service)
 end
 
 function TGFrameworkClient:GetService(service: string, timeToWait: number)
-  timeToWait = timeToWait or 0
-  assert(ServiceEventsFolder:WaitForChild(service, timeToWait), string.format("%s isn't a valid Service.", service))
+  assert(timeToWait and ServiceEventsFolder:WaitForChild(service, timeToWait) or ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
   local items = debug.traceback():split("GetService")[2]:split(":")[1]:split(".")
   local controllerName = items[#items]
   return formatService(controllerName, service)
@@ -119,5 +118,6 @@ end
 TGFrameworkClient.Started = false
 TGFrameworkClient.OnStart = Signal.new()
 TGFrameworkClient.Dependencies = Dependencies
+TGFrameworkClient.TNet = TNetMain
 
 return TGFrameworkClient
