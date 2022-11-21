@@ -97,7 +97,34 @@ end
 
 function TGFrameworkClient:Start()
   return Promise.new(function(resolve, reject, onCancel)
-    for _, Controller in Controllers do
+    local InitializationQueue = {}
+
+    for Controller, _ in Controllers do
+      table.insert(InitializationQueue, Controller)
+    end
+
+    for _, ControllerName in InitializationQueue do
+        local Data = Services[ControllerName]
+        local DepNumber = Data.Dependencies and #Data.Dependencies or 0
+        local LastPos = table.find(InitializationQueue, ControllerName)
+        local NewIndex = 0
+        if DepNumber > 0 then
+          for _, Dependency in Data.Dependencies do
+              local DepIndex = table.find(InitializationQueue, Dependency)
+              if DepIndex > NewIndex then
+                   NewIndex = DepIndex + 1
+              end
+          end
+        else
+            NewIndex = 1
+        end
+        table.remove(InitializationQueue, LastPos)
+        table.insert(InitializationQueue, NewIndex, ControllerName)
+    end
+
+
+    for _, Ctrlr in InitializationQueue do
+      local Controller = Controllers[Ctrlr]
       if Controller.Initialize then
         Controller:Initialize()
       end
