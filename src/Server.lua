@@ -10,8 +10,32 @@ local _warn = warn
 local function warn(...)
     _warn("[TGFramework Server]:",...)
 end
+
+local function formatMiddleware(Middleware: {}, ServiceName: string)
+    local NewMiddleware = {}
+    NewMiddleware = Middleware.RequestsPerMinute
+    for MiddlewareType, Functions in Middleware do
+        if MiddlewareType ~= "RequestsPerMinute" then
+            assert(MiddlewareType == "Inbound" or MiddlewareType == "Outbound", "Invalid Middleware Type.")
+            NewMiddleware[MiddlewareType] = {}
+            for _, func in Functions do
+                table.insert(NewMiddleware[MiddlewareType], function(...)
+                    task.spawn(func, ServiceName, ...)
+                end)
+            end
+        end
+    end
+    return NewMiddleware
+end
+
 local Services = {}
 local TGFrameworkServer = {}
+
+TGFrameworkServer.Started = false
+TGFrameworkServer.OnStart = Signal.new()
+TGFrameworkServer.Dependencies = Dependencies
+TGFrameworkServer.Networking = Networking
+TGFrameworkServer.TNet = TNet.new()
 
 --[[
 local function formatService(service)
@@ -54,10 +78,36 @@ function TGFrameworkServer:AddServices(directory:Folder, deep:boolean)
     end
 end
 
-function TGFrameworkServer:Start()
+function TGFrameworkServer:Start(args: {})
     return Promise.new(function(resolve, reject, onCancel)
-        for _, Service in Services do
-            Service.TNet = TNet.new()
+        local InitializationQueue = {}
+
+        for Service, _ in Services do
+            table.insert(InitializationQueue, Service)
+        end
+
+        for _, ServiceName in InitializationQueue do
+            local Data = Services[ServiceName]
+            local DepNumber = Data.Dependencies and #Data.Dependencies or 0
+            local LastPos = table.find(InitializationQueue, ServiceName)
+            local NewIndex = 0
+            if DepNumber > 0 then
+                for _, Dependency in Data.Dependencies do
+                    local DepIndex = table.find(InitializationQueue, Dependency)
+                    if DepIndex > NewIndex then
+                        NewIndex = DepIndex + 1
+                    end
+                end
+            else
+                NewIndex = 1
+            end
+            table.remove(InitializationQueue, LastPos)
+            table.insert(InitializationQueue, NewIndex, ServiceName)
+        end
+
+        for _, Svc in InitializationQueue do
+            local Service = Services[Svc]
+            Service.TNet = Service.Middleware and TNet.new() or TGFrameworkServer.TNet
             if Service.Middleware then
                 Service.TNet.Middleware = Service.Middleware
             end
@@ -76,7 +126,11 @@ function TGFrameworkServer:Start()
                         local RemoteFunction = Instance.new("RemoteFunction")
                         RemoteFunction.Parent = RemoteFunctions
                         RemoteFunction.Name = property
-                        Service.TNet:HandleRemoteFunction(RemoteFunction):Connect(
+                        local Handler = Service.TNet:HandleRemoteFunction(RemoteFunction)
+                        if args.Middleware and not Service.Middleware then
+                            Handler.Middleware = formatMiddleware(args.Middleware, Service.Name)
+                        end
+                        Handler:Connect(
                             function(...)
                                 return value(...)
                             end
@@ -89,7 +143,11 @@ function TGFrameworkServer:Start()
                         else
                             Remote = Instance.new("RemoteFunction")
                         end
-                        Services[Service.Name].Client[property] = Remote:IsA("RemoteFunction") and Service.TNet:HandleRemoteFunction(Remote) or Service.TNet:HandleRemoteEvent(Remote)
+                        local Handler = Remote:IsA("RemoteFunction") and Service.TNet:HandleRemoteFunction(Remote) or Service.TNet:HandleRemoteEvent(Remote)
+                        if args.Middleware and not Service.Middleware then
+                            Handler.Middleware = formatMiddleware(args.Middleware, Service.Name)
+                        end
+                        Services[Service.Name].Client[property] = Handler
                         Remote.Name = property
                         Remote.Parent = ClientSignalEvents
                     end
@@ -111,10 +169,5 @@ function TGFrameworkServer:Start()
         resolve(true)
     end)
 end
-
-TGFrameworkServer.Started = false
-TGFrameworkServer.OnStart = Signal.new()
-TGFrameworkServer.Dependencies = Dependencies
-TGFrameworkServer.Networking = Networking
 
 return TGFrameworkServer
