@@ -104,7 +104,7 @@ function TGFrameworkClient:Start()
     end
 
     for _, ControllerName in InitializationQueue do
-        local Data = Services[ControllerName]
+        local Data = Controllers[ControllerName]
         local DepNumber = Data.Dependencies and #Data.Dependencies or 0
         local LastPos = table.find(InitializationQueue, ControllerName)
         local NewIndex = 0
