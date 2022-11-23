@@ -79,6 +79,7 @@ function TGFrameworkServer:AddServices(directory:Folder, deep:boolean)
 end
 
 function TGFrameworkServer:Start(args: {})
+    args = args or {}
     return Promise.new(function(resolve, reject, onCancel)
         local InitializationQueue = {}
 

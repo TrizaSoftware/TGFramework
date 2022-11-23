@@ -95,7 +95,8 @@ function TGFrameworkClient:AddControllers(directory:Folder, deep:boolean)
   end
 end
 
-function TGFrameworkClient:Start()
+function TGFrameworkClient:Start(args: {})
+  args = args or {}
   return Promise.new(function(resolve, reject, onCancel)
     local InitializationQueue = {}
 
@@ -127,6 +128,22 @@ function TGFrameworkClient:Start()
       local Controller = Controllers[Ctrlr]
       if Controller.Initialize then
         Controller:Initialize()
+      end
+    end
+    if args.Middleware then
+      for middlewareType, tab in args.Middleware do
+        assert(middlewareType == "Inbound" or middlewareType == "Outbound", "Invalid Middleware Type.")
+        for _, func in tab do
+          for _, handler in SignalEvents do
+            if not handler.Middleware.Inbound and not handler.Middleware.Outbound then
+              handler.Middleware = {
+                Inbound = {},
+                Outbound = {}
+              }
+            end
+            table.insert(handler.Middleware[middlewareType], func)
+          end
+        end
       end
     end
     self.OnStart:Fire()
