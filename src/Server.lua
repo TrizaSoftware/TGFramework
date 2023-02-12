@@ -11,6 +11,15 @@ local function warn(...)
     _warn("[TGFramework Server]:",...)
 end
 
+type Service = {
+    Name: string,
+    Client: {
+      [any]: any
+    },
+    TNet: any,
+    [any]: any
+  }
+
 local function formatMiddleware(Middleware: {}, ServiceName: string)
     local NewMiddleware = {}
     NewMiddleware = Middleware.RequestsPerMinute
@@ -52,12 +61,12 @@ local function formatService(service)
 end
 ]]
 
-function TGFrameworkServer:GetService(service:string)
+function TGFrameworkServer:GetService(service:string): Service
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[service]
 end
 
-function TGFrameworkServer:CreateService(config)
+function TGFrameworkServer:CreateService(config): Service
     assert(config.Name, "A service must have a name.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
     assert(not TGFrameworkServer.Started, "You can't create a service when TGFramework has already started.")
@@ -106,8 +115,9 @@ function TGFrameworkServer:Start(args: {})
             table.insert(InitializationQueue, NewIndex, ServiceName)
         end
 
-        for _, Svc in InitializationQueue do
-            local Service = Services[Svc]
+        -- Setup Networking
+
+        for _, Service in Services do
             Service.TNet = Service.Middleware and TNet.new() or TGFrameworkServer.TNet
             if Service.Middleware then
                 Service.TNet.Middleware = Service.Middleware
@@ -154,20 +164,37 @@ function TGFrameworkServer:Start(args: {})
                     end
                 end
             end
-			if Service.Initialize then
-				Service:Initialize()
-			end
         end
-        self.OnStart:Fire()
-        TGFrameworkServer.Started = true
+
+        -- Initialize Services
+
+        local InitializationPromiseFunctions = {}
+
+        for i, ServiceName: string in InitializationQueue do
+            local Service = Services[ServiceName]
+            if Service.Initialize then
+                table.insert(InitializationPromiseFunctions, i, function()
+                    return Promise.new(function(serviceResolve)
+                        debug.setmemorycategory(Service.Name)
+                        Service:Initialize()
+                        serviceResolve()
+                    end)
+                end)
+            end
+        end
+        resolve(Promise.all(InitializationPromiseFunctions))
+    end):andThen(function()
         for _, Service in Services do
             task.spawn(function()
                 if Service.Start then
+                    debug.setmemorycategory(Service.Name)
                     Service:Start()
                 end
             end)
         end
-        resolve(true)
+
+        self.OnStart:Fire()
+        TGFrameworkServer.Started = true
     end)
 end
 

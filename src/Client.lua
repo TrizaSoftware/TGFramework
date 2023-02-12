@@ -3,11 +3,25 @@ local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
 local TNet = require(Dependencies.TNet)
 local TNetMain = TNet.new()
-local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
+local ServiceEventsFolder
+task.spawn(function()
+  ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
+end)
 local _warn = warn
 local function warn(...)
     _warn("[TGFramework Client]:",...)
 end
+
+type Controller = {
+  Name: string,
+  [any]: any
+}
+
+type Service = {
+  [any]: any | (any) -> any
+}
+
+
 local Controllers = {}
 local TGFrameworkClient = {}
 local SignalEvents = {}
@@ -62,19 +76,19 @@ local function formatService(controllerName, service)
   return formattedService
 end
 
-function TGFrameworkClient:GetService(service: string, timeToWait: number)
+function TGFrameworkClient:GetService(service: string, timeToWait: number): Service
   assert(timeToWait and ServiceEventsFolder:WaitForChild(service, timeToWait) or ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
   local items = debug.traceback():split("GetService")[2]:split(":")[1]:split(".")
   local controllerName = items[#items]
   return formatService(controllerName, service)
 end
 
-function TGFrameworkClient:GetController(controller: string)
+function TGFrameworkClient:GetController(controller: string): Controller
   assert(Controllers[controller], string.format("%s isn't a valid Controller.", controller))
   return Controllers[controller]
 end
 
-function TGFrameworkClient:CreateController(config)
+function TGFrameworkClient:CreateController(config): Controller
   assert(config.Name, "A name must be specified for a Controller.")
   assert(not Controllers[config.Name], string.format("A Controller with the name of %s already exists.", config.Name))
   assert(not TGFrameworkClient.Started, "You can't create a controller when TGFramework has already started.")
@@ -123,13 +137,8 @@ function TGFrameworkClient:Start(args: {})
         table.insert(InitializationQueue, NewIndex, ControllerName)
     end
 
+    -- Setup Middleware
 
-    for _, Ctrlr in InitializationQueue do
-      local Controller = Controllers[Ctrlr]
-      if Controller.Initialize then
-        Controller:Initialize()
-      end
-    end
     if args.Middleware then
       for middlewareType, tab in args.Middleware do
         assert(middlewareType == "Inbound" or middlewareType == "Outbound", "Invalid Middleware Type.")
@@ -146,17 +155,37 @@ function TGFrameworkClient:Start(args: {})
         end
       end
     end
-    self.OnStart:Fire()
-    TGFrameworkClient.Started = true
+
+    -- Initialize Controllers
+
+    local InitializationPromiseFunctions = {}
+
+    for i, ControllerName in InitializationQueue do
+      local Controller = Controllers[ControllerName]
+      if Controller.Initialize then
+        table.insert(InitializationPromiseFunctions, i, function()
+          return Promise.new(function(controllerResolve)
+            debug.setmemorycategory(Controller.Name)
+            Controller:Initialize()
+            controllerResolve()
+          end)
+        end)
+      end
+    end
+    resolve(Promise.all(InitializationPromiseFunctions))
+  end):andThen(function()
     for _, Controller in Controllers do
       task.spawn(function()
         if Controller.Start then
+          debug.setmemorycategory(Controller.Name)
           Controller:Start()
         end
       end)
     end
-    resolve(true)
-end)
+
+    self.OnStart:Fire()
+    TGFrameworkClient.Started = true
+  end)
 end
 
 TGFrameworkClient.Started = false
