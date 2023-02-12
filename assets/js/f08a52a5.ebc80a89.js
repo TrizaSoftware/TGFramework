@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[487],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/TrizaCorporation/TGFramework/blob/master","baseUrl":"/","classOrder":[],"apiCategories":[]}')}}]);
