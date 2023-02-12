@@ -16,4 +16,5 @@ if not success then
     os.exit(1)
 else
     os.exit(result)
+    os.exit(0)
 end
