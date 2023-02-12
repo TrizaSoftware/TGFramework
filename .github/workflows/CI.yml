@@ -39,6 +39,11 @@ jobs:
         with:
           version: "^1.0.1"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Wally Packages
+        run: |
+          mv ./wally.toml ./src
+          cd src
+          wally install
       - name: Install & Run Darklua
         run: |
           cargo install --git https://gitlab.com/seaofvoices/darklua.git#v0.6.0
