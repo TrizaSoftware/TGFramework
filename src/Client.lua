@@ -95,7 +95,7 @@ function TGFrameworkClient:CreateController(config): Controller
 end
 
 function TGFrameworkClient:AddControllers(directory: Folder, deep: boolean)
-  local items = if deep then directory:GetDescendants() else directory:GetChildren()
+  local items = deep and directory:GetDescendants() or directory:GetChildren()
   for _, item in items do
       if item:IsA("ModuleScript") then
           Promise.try(function()

@@ -102,7 +102,8 @@ function TGFrameworkServer:CreateService(config): Service
 end
 
 function TGFrameworkServer:AddServices(directory: Folder, deep: boolean)
-    for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
+    local items = deep and directory:GetDescendants() or directory:GetChildren()
+    for _, item in items do
         if item:IsA("ModuleScript") then
             Promise.try(function()
                 require(item)
