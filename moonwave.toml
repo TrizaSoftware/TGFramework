@@ -1,0 +1,20 @@
+title = "TGFramework"
+gitRepoUrl = "https://github.com/TrizaCorporation/TGFramework"
+
+gitSourceBranch = "master"
+changelog = true
+classOrder = []
+
+[docusaurus]
+organizationName = "TrizaCorporation"
+projectName = "TGFramework"
+url = "https://tgframework.docs.triza.dev"
+baseUrl = "/"
+tagline = "A Roblox Networking Framework Similar to Knit"
+
+[footer]
+style = "dark"
+copyright = "Copyright © 2023 T:Riza Corporation. Built with Moonwave and Docusaurus"
+
+[home]
+enabled = true

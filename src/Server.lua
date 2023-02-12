@@ -11,6 +11,11 @@ local function warn(...)
     _warn("[TGFramework Server]:",...)
 end
 
+--[=[
+    @type Service { Name: string, Client: { [any]: any }, TNet: any, [any]: any }
+    @within TGFrameworkServer
+]=]
+
 type Service = {
     Name: string,
     Client: {
@@ -18,7 +23,7 @@ type Service = {
     },
     TNet: any,
     [any]: any
-  }
+}
 
 local function formatMiddleware(Middleware: {}, ServiceName: string)
     local NewMiddleware = {}
@@ -38,6 +43,12 @@ local function formatMiddleware(Middleware: {}, ServiceName: string)
 end
 
 local Services = {}
+
+--[=[
+    The Server Instance for TGFramework
+
+    @class TGFrameworkServer
+]=]
 local TGFrameworkServer = {}
 
 TGFrameworkServer.Started = false
@@ -61,10 +72,25 @@ local function formatService(service)
 end
 ]]
 
-function TGFrameworkServer:GetService(service:string): Service
+--[=[
+    Gets the requested service.
+
+    @param service string
+
+    @error Isn't a Valid Service -- Happens when the service isn't registered.
+]=]
+
+function TGFrameworkServer:GetService(service: string): Service
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[service]
 end
+
+--[=[
+    Creates a service with the configuration data.
+
+    @param config {Name: string, Client: {[any]: any}, [any]: any}
+    @return Service
+]=]
 
 function TGFrameworkServer:CreateService(config): Service
     assert(config.Name, "A service must have a name.")
@@ -75,7 +101,7 @@ function TGFrameworkServer:CreateService(config): Service
     return Service
 end
 
-function TGFrameworkServer:AddServices(directory:Folder, deep:boolean)
+function TGFrameworkServer:AddServices(directory: Folder, deep: boolean)
     for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
         if item:IsA("ModuleScript") then
             Promise.try(function()
