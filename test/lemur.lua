@@ -1,5 +1,4 @@
-local lfs = require("lfs")
-print(lfs)
+require "luarocks.loader"
 local lemur = require("modules.lemur")
 
 local ModulesToLoad = {
