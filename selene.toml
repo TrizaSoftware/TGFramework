@@ -1,4 +1,4 @@
-std="roblox+luau"
+std="roblox+testez"
 [rules]
 unused_variable = "allow"
 shadowing = "allow"

@@ -11,6 +11,20 @@ local function warn(...)
     _warn("[TGFramework Server]:",...)
 end
 
+--[=[
+    @type Service { Name: string, Client: { [any]: any }, TNet: any, [any]: any }
+    @within TGFrameworkServer
+]=]
+
+type Service = {
+    Name: string,
+    Client: {
+      [any]: any
+    },
+    TNet: any,
+    [any]: any
+}
+
 local function formatMiddleware(Middleware: {}, ServiceName: string)
     local NewMiddleware = {}
     NewMiddleware = Middleware.RequestsPerMinute
@@ -29,6 +43,12 @@ local function formatMiddleware(Middleware: {}, ServiceName: string)
 end
 
 local Services = {}
+
+--[=[
+    The Server Instance for TGFramework
+
+    @class TGFrameworkServer
+]=]
 local TGFrameworkServer = {}
 
 TGFrameworkServer.Started = false
@@ -52,13 +72,28 @@ local function formatService(service)
 end
 ]]
 
-function TGFrameworkServer:GetService(service:string)
+--[=[
+    Gets the requested service.
+
+    @param service string
+
+    @error Isn't a Valid Service -- Happens when the service isn't registered.
+]=]
+
+function TGFrameworkServer:GetService(service: string): Service
     assert(Services[service], string.format("%s isn't a valid Service.", service))
     return Services[service]
 end
 
-function TGFrameworkServer:CreateService(config)
-    assert(config.Name, "A service must have a name.")
+--[=[
+    Creates a service with the configuration data.
+
+    @param config {Name: string, Client: {[any]: any}, [any]: any}
+    @return Service
+]=]
+
+function TGFrameworkServer:CreateService(config): Service
+    assert(config.Name, "A name must be specified for a Service.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
     assert(not TGFrameworkServer.Started, "You can't create a service when TGFramework has already started.")
     local Service = config
@@ -66,8 +101,9 @@ function TGFrameworkServer:CreateService(config)
     return Service
 end
 
-function TGFrameworkServer:AddServices(directory:Folder, deep:boolean)
-    for _, item in if deep then directory:GetDescendants() else directory:GetChildren() do
+function TGFrameworkServer:AddServices(directory: Folder, deep: boolean)
+    local items = deep and directory:GetDescendants() or directory:GetChildren()
+    for _, item in items do
         if item:IsA("ModuleScript") then
             Promise.try(function()
                 require(item)
@@ -106,8 +142,9 @@ function TGFrameworkServer:Start(args: {})
             table.insert(InitializationQueue, NewIndex, ServiceName)
         end
 
-        for _, Svc in InitializationQueue do
-            local Service = Services[Svc]
+        -- Setup Networking
+
+        for _, Service in Services do
             Service.TNet = Service.Middleware and TNet.new() or TGFrameworkServer.TNet
             if Service.Middleware then
                 Service.TNet.Middleware = Service.Middleware
@@ -154,20 +191,37 @@ function TGFrameworkServer:Start(args: {})
                     end
                 end
             end
-			if Service.Initialize then
-				Service:Initialize()
-			end
         end
-        self.OnStart:Fire()
-        TGFrameworkServer.Started = true
+
+        -- Initialize Services
+
+        local InitializationPromiseFunctions = {}
+
+        for i, ServiceName: string in InitializationQueue do
+            local Service = Services[ServiceName]
+            if Service.Initialize then
+                table.insert(InitializationPromiseFunctions, i, function()
+                    return Promise.new(function(serviceResolve)
+                        debug.setmemorycategory(Service.Name)
+                        Service:Initialize()
+                        serviceResolve()
+                    end)
+                end)
+            end
+        end
+        resolve(Promise.all(InitializationPromiseFunctions))
+    end):andThen(function()
         for _, Service in Services do
             task.spawn(function()
                 if Service.Start then
+                    debug.setmemorycategory(Service.Name)
                     Service:Start()
                 end
             end)
         end
-        resolve(true)
+
+        self.OnStart:Fire()
+        TGFrameworkServer.Started = true
     end)
 end
 
