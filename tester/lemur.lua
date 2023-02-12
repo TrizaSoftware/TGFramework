@@ -16,3 +16,6 @@ for moduleName, modulePath in pairs(ModulesToLoad) do
     loadedModule.Name = moduleName
     loadedModule.Parent = ReplicatedStorage
 end
+
+local testRunner = habitat:loadFromFs("tester/testrunner.server.lua")
+habitat:require(testRunner)

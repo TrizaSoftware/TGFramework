@@ -38,4 +38,4 @@ jobs:
         run: |
           luarocks install luafilesystem
       - name: Test
-        run: lua test/lemur.lua
+        run: lua tester/lemur.lua
