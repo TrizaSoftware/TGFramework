@@ -1,4 +1,5 @@
-require "luarocks.loader"
+package.path = package.path .. ";?/init.lua"
+
 local lemur = require("modules.lemur")
 
 local ModulesToLoad = {
