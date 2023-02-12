@@ -93,7 +93,7 @@ end
 ]=]
 
 function TGFrameworkServer:CreateService(config): Service
-    assert(config.Name, "A service must have a name.")
+    assert(config.Name, "A name must be specified for a Service.")
     assert(not Services[config.Name], string.format("A Service with the name of %s already exists.", config.Name))
     assert(not TGFrameworkServer.Started, "You can't create a service when TGFramework has already started.")
     local Service = config
