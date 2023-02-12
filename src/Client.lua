@@ -3,10 +3,7 @@ local Promise = require(Dependencies.RbxLuaPromise)
 local Signal = require(Dependencies.Signal)
 local TNet = require(Dependencies.TNet)
 local TNetMain = TNet.new()
-local ServiceEventsFolder
-task.spawn(function()
-  ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
-end)
+local ServiceEventsFolder = script.Parent:WaitForChild("ServiceEvents")
 local _warn = warn
 local function warn(...)
     _warn("[TGFramework Client]:",...)
