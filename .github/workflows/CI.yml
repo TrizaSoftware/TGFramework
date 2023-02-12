@@ -37,3 +37,5 @@ jobs:
       - name: Install Dependencies
         run: |
           luarocks install luafilesystem
+      - name: Test
+        run: lua test/lemur.lua
