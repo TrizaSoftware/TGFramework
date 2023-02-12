@@ -1,7 +1,7 @@
 title = "TGFramework"
 gitRepoUrl = "https://github.com/TrizaCorporation/TGFramework"
 
-gitSourceBranch = "master"
+gitSourceBranch = "main"
 changelog = true
 classOrder = []
 
