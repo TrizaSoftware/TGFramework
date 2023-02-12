@@ -1,4 +1,6 @@
-local lemur = require("modules/lemur/init.lua")
+local lfs = require("lfs")
+print(lfs)
+local lemur = require("modules.lemur")
 
 local ModulesToLoad = {
     TGFramework = "src",
