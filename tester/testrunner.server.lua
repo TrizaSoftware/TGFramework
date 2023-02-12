@@ -1,4 +1,4 @@
-local success, result = xpcall(function()
+local success = xpcall(function()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
     local TestEZ = require(ReplicatedStorage.TestEZ)
@@ -11,10 +11,4 @@ local success, result = xpcall(function()
     return Results.failureCount == 0
 end, debug.traceback)
 
-if not success then
-    print(result)
-    os.exit(1)
-else
-    os.exit(result)
-    os.exit(0)
-end
+os.exit(success and 0 or 1)
