@@ -34,6 +34,15 @@ jobs:
       - uses: leafo/gh-actions-luarocks@v4
         with:
           luarocksVersion: "3.5.0"
+      - name: Install Foreman
+        uses: Roblox/setup-foreman@v1
+        with:
+          version: "^1.0.1"
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install & Run Darklua
+        run: |
+          cargo install --git https://gitlab.com/seaofvoices/darklua.git#v0.6.0
+          darklua process src/ src/ --format retain-lines
       - name: Install Dependencies
         run: |
           luarocks install luafilesystem
