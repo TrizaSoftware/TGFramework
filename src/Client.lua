@@ -161,13 +161,13 @@ function TGFrameworkClient:Start(args: {})
     for i, ControllerName in InitializationQueue do
       local Controller = Controllers[ControllerName]
       if Controller.Initialize then
-        table.insert(InitializationPromiseFunctions, i, function()
-          return Promise.new(function(controllerResolve)
-            debug.setmemorycategory(Controller.Name)
-            Controller:Initialize()
-            controllerResolve()
+        table.insert(InitializationPromiseFunctions, i,
+          Promise.new(function(controllerResolve)
+              debug.setmemorycategory(Controller.Name)
+              Controller:Initialize()
+              controllerResolve()
           end)
-        end)
+        )
       end
     end
     resolve(Promise.all(InitializationPromiseFunctions))
