@@ -19,4 +19,16 @@ return function ()
             end)
         end)
     end)
+
+    describe("Service", function()
+        describe("GetService", function()
+            it("should throw an error with an invalid service", function()
+                local success = pcall(function()
+                    Client:GetService("ThisServiceDoesntExist")
+                end)
+
+                expect(not success).to.be.ok()
+            end)
+        end)
+    end)
 end

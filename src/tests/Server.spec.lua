@@ -15,6 +15,17 @@ return function ()
                 local success = pcall(function()
                     Server:CreateService({})
                 end)
+
+                expect(not success).to.be.ok()
+            end)
+        end)
+
+        describe("GetService", function()
+            it("should throw an error with an invalid service", function()
+                local success = pcall(function()
+                    Server:GetService("ThisServiceDoesntExist")
+                end)
+
                 expect(not success).to.be.ok()
             end)
         end)
