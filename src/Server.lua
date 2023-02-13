@@ -195,12 +195,12 @@ function TGFrameworkServer:Start(args: {})
 
         -- Initialize Services
 
-        local InitializationPromiseFunctions = {}
+        local InitializationPromises = {}
 
         for i, ServiceName: string in InitializationQueue do
             local Service = Services[ServiceName]
             if Service.Initialize then
-                table.insert(InitializationPromiseFunctions, i,
+                table.insert(InitializationPromises, #InitializationPromises + 1,
                     Promise.new(function(serviceResolve)
                         debug.setmemorycategory(Service.Name)
                         Service:Initialize()
@@ -209,7 +209,7 @@ function TGFrameworkServer:Start(args: {})
                 )
             end
         end
-        resolve(Promise.all(InitializationPromiseFunctions))
+        resolve(Promise.all(InitializationPromises))
     end):andThen(function()
         for _, Service in Services do
             task.spawn(function()

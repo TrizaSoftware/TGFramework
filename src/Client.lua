@@ -156,12 +156,12 @@ function TGFrameworkClient:Start(args: {})
 
     -- Initialize Controllers
 
-    local InitializationPromiseFunctions = {}
+    local InitializationPromises = {}
 
     for i, ControllerName in InitializationQueue do
       local Controller = Controllers[ControllerName]
       if Controller.Initialize then
-        table.insert(InitializationPromiseFunctions, i,
+        table.insert(InitializationPromises, #InitializationPromises + 1,
           Promise.new(function(controllerResolve)
               debug.setmemorycategory(Controller.Name)
               Controller:Initialize()
@@ -170,7 +170,7 @@ function TGFrameworkClient:Start(args: {})
         )
       end
     end
-    resolve(Promise.all(InitializationPromiseFunctions))
+    resolve(Promise.all(InitializationPromises))
   end):andThen(function()
     for _, Controller in Controllers do
       task.spawn(function()
