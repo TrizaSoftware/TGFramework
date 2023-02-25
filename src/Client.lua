@@ -74,7 +74,7 @@ local function formatService(controllerName, service)
 end
 
 function TGFrameworkClient:GetService(service: string, timeToWait: number): Service
-  assert(timeToWait and ServiceEventsFolder:WaitForChild(service, timeToWait) or ServiceEventsFolder:FindFirstChild(service), string.format("%s isn't a valid Service.", service))
+  assert(timeToWait and ServiceEventsFolder:WaitForChild(service, timeToWait) or ServiceEventsFolder:WaitForChild(service), string.format("%s isn't a valid Service.", service))
   local items = debug.traceback():split("GetService")[2]:split(":")[1]:split(".")
   local controllerName = items[#items]
   return formatService(controllerName, service)
