@@ -8,6 +8,8 @@
 
 Programmer(s): CodedJimmy
 
+Copyright(c): T:Riza Corporation 2020-2023
+
 ]]
 
 local RunService = game:GetService("RunService")
