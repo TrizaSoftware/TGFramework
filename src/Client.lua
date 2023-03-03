@@ -107,7 +107,7 @@ end
 
 function TGFrameworkClient:AddControllers(directory: Folder, deep: boolean)
   local Items = deep and directory:GetDescendants() or directory:GetChildren()
-  local RequiringPromises  = {}
+  local RequiringPromises = {}
 
   for _, item in Items do
     if item:IsA("ModuleScript") then

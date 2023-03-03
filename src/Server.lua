@@ -101,8 +101,27 @@ function TGFrameworkServer:CreateService(config): Service
     return Service
 end
 
+--[=[
+      Adds the Controllers to the startup procedure, and starts them when ``TGFrameworkServer:Start()`` is called.
+      @yields
+]=]
+
 function TGFrameworkServer:AddServices(directory: Folder, deep: boolean)
-    local items = deep and directory:GetDescendants() or directory:GetChildren()
+    local Items = deep and directory:GetDescendants() or directory:GetChildren()
+    local RequiringPromises = {}
+
+    for _, item in Items do
+        if item:IsA("ModuleScript") then
+            table.insert(RequiringPromises, Promise.new(function(resolve)
+                require(item)
+                resolve()
+            end):catch(function(error)
+                warn(error)
+            end))
+        end
+    end
+    Promise.all(RequiringPromises):await()
+    --[[
     for _, item in items do
         if item:IsA("ModuleScript") then
             Promise.try(function()
@@ -112,6 +131,7 @@ function TGFrameworkServer:AddServices(directory: Folder, deep: boolean)
             end)
         end
     end
+    ]]
 end
 
 function TGFrameworkServer:Start(args: {})
