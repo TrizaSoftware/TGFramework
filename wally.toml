@@ -1,6 +1,6 @@
 [package]
 name = "codedjimmy/tgframework"
-version = "0.1.25"
+version = "0.1.26"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "A simple Roblox networking framework designed and managed by the T:Riza Corporation."

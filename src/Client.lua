@@ -18,7 +18,6 @@ type Service = {
   [any]: any | (any) -> any
 }
 
-
 local Controllers = {}
 --[=[
     The Client Instance for TGFramework
